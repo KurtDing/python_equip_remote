@@ -132,11 +132,14 @@ def decode_err(instrument_handle, status_code):
         print(f"Error Message: {msg_buffer.value.decode('utf-8')}")
 
 # =============================================================================
+# Initialize VISA and device
+# =============================================================================
 # 初始化 VISA
 rm = pyvisa.ResourceManager()
+print('Availiable equip :', rm.list_resources())
 
 # 打開設備
-resource_name = 'USB0::0x1313::0x8078::P0027168::INSTR'  # 設備資源名稱
+resource_name = 'USB0::0x1313::0x8078::P0027168::INSTR'  # 變更為實際的設備資源名稱
 instrument = rm.open_resource(resource_name)
 instrument_handle = ctypes.c_void_p(instrument.session)
 
@@ -145,17 +148,20 @@ status = PM100D_init(resource_name.encode('utf-8'), True, True, ctypes.byref(ins
 if status != 0:
     print(f"PM100D_init failed with status code {status}")
 
-'''
+
+# =============================================================================
+# Show equipment informations
+# =============================================================================
 # 找設備資源
 resource_count = ctypes.c_uint32(0)
 status = PM100D_findRsrc(instrument_handle, ctypes.byref(resource_count))
-print(f"Resource Count: {resource_count.value}")
+print(f"Resource Count0(by dll): {resource_count.value}")
 
 # 獲取設備資源名稱
 index = 0  # 要找的設備索引
 resource_name_buffer = ctypes.create_string_buffer(256)  # 緩衝區
 status = PM100D_getRsrcName(instrument_handle, index, resource_name_buffer)
-print(f"Resource Name: {resource_name_buffer.value.decode('utf-8')}\n")
+print(f"Resource Name by index: {resource_name_buffer.value.decode('utf-8')}\n")
 
 # 取得設備資源訊息
 model_name_buffer = ctypes.create_string_buffer(256)  # 适当大小的缓冲区
@@ -181,8 +187,12 @@ print(f"Sensor Serial Number: {snr_buffer.value.decode('utf-8')}")
 print(f"Sensor Message: {message_buffer.value.decode('utf-8')}")
 print(f"Sensor Type: {pType.value}")
 print(f"Sensor Subtype: {pStype.value}")
-print(f"Sensor Flags: {pFlags.value}\n")'''
+print(f"Sensor Flags: {pFlags.value}\n")
 
+
+# =============================================================================
+# Setup the measurement settings
+# =============================================================================
 # 設定及顯示參考值狀態及數值, 單位W
 attribute = ctypes.c_int16(0)  # 0 = set value, 1 = MIN, 2 = MAX
 ref_state = ctypes.c_bool(False)
@@ -194,12 +204,13 @@ PM100D_setPowerRef(instrument_handle, ref_value)
 status = PM100D_getPowerRef(instrument_handle, attribute, ctypes.byref(ref_value))
 print(f"Reference Value: {ref_value.value*10**6} uW\n")
 
-'''# AutoRange設定,初始化後會設為AUTO
-power_autorange_mode = ctypes.c_bool(False)
+# AutoRange設定,初始化後會設為AUTO,設定range後會變OFF
+power_autorange_mode = ctypes.c_bool(True)
 PM100D_setPowerAutorange(instrument_handle, power_autorange_mode)
 status = PM100D_getPowerAutorange(instrument_handle, ctypes.byref(power_autorange_mode))
 print(f"Power Autorange Mode: {power_autorange_mode.value}")
 
+'''
 # 設定及顯示功率上限, 設定值10**0 ~ 10**-5, 關閉autorange才有作用
 attribute = ctypes.c_int16(0)  # 0 = set value, 1 = MIN, 2 = MAX
 power_value = ctypes.c_double(0.1)
@@ -208,9 +219,10 @@ status = PM100D_getPowerRange(instrument_handle, attribute, ctypes.byref(power_v
 if status != 0:
     print(f"PM100D_getPowerRange failed with status code {status}")
 else:
-    print(f"Power Value: {power_value.value}\n")'''
+    print(f"Power Value: {power_value.value}\n")
+'''
 
-# 設定波長
+# 設定響應波長
 attribute = ctypes.c_int16(0)  # 0 = set value, 1 = MIN, 2 = MAX
 wavlength = ctypes.c_double(1310)
 PM100D_setWL(instrument_handle, wavlength)
@@ -221,7 +233,7 @@ else:
     print(f"Wavelength Value: {wavlength.value}\n")
 time.sleep(0.5) # 需要等待切換完成
 
-# 單位設定,初始化後會設為Watt, [0]=WATT, [1]=DBM
+# 單位設定,初始化後會設為Watt, [0]=W, [1]=DBM
 pow_unit = 'DBM'
 power_unit = ctypes.c_int16(1 if pow_unit == 'DBM' else 0)
 PM100D_setPowerUnit(instrument_handle, power_unit)
@@ -229,13 +241,17 @@ status = PM100D_getPowerUnit(instrument_handle, ctypes.byref(power_unit))
 print(f"Power Unit: {power_unit.value}")
 time.sleep(0.5) # 需要等待切換完成
 
+# =============================================================================
+
 # 調用 PM100D_measPower 測量功率函數
 power = ctypes.c_double(0.0)
-status = PM100D_measPower(instrument_handle, ctypes.byref(power))
-if status != 0:
-    print(f"PM100D_measPower failed with status code {status}")
-else:
-    print(f"Measured Power: {power.value} {pow_unit}")
+for i in range(3):
+    status = PM100D_measPower(instrument_handle, ctypes.byref(power))
+    if status != 0:
+        print(f"PM100D_measPower failed with status code {status}")
+    else:
+        print(f"Measured Power: {power.value} {pow_unit}")
+    time.sleep(0.5)
 
 # 調用 PM100D_close 關閉設備函數
 status = PM100D_close(instrument_handle)

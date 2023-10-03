@@ -56,10 +56,12 @@ pm100d.write('ABOR')
 
 # Another way to read value, start new measurement and read data in one cmd.
 # I would like using this for single read.
-'''for i in range(3):  
+'''
+for i in range(3):  
     pm100d.write('read?')
-    print(pm100d.read())'''
+    print(pm100d.read())
+'''
 
-pm100d.write('*CLS') 
-pm100d.control_ren(0)
+pm100d.write('*CLS')        # 清除設備buffer
+pm100d.control_ren(0)       # 取消remote狀態
 rm.close()
