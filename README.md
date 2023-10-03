@@ -14,4 +14,4 @@ So this sample demonstrates using ctypes library to connect dll file and remote 
 *Folder "./ThorLabs_PM100D" :*    
 Demonstrates to remote equipment by pyvisa and ctypes library.    
 Established the linkage by pyVisa and performes the functions by dll file.    
-There are command verion and dll verion in the folder.    
+There are both command verion and dll verion in the folder.    
