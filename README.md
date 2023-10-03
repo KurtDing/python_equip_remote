@@ -7,7 +7,7 @@ Uses VISA write to send SCPI and device specific command to equipment.
 This equipment can communicate through TCP/IP and RS232.
     
 *Folder "./Atmega8a_USB_Relay" :*    
-Can not see the resourename after board connection to computer.    
+Can not see the resourename after relay board connection to computer.    
 Document says using the dll file to control this device.
 So this sample demonstrates using ctypes library to connect dll file and remote the device.    
   
