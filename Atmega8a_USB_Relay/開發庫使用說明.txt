@@ -1,0 +1,19 @@
+一，開發庫在Vistual Studio中的使用方法
+1. 新建一個C++工程
+2. 在生成的stdfax.h標頭檔中導入dll庫文件
+   #include "usb_relay_device.h"
+   #pragma comment(lib, "usb_relay_device.lib")
+3. 拷貝usb_relay_device.dll到你的應用程式生成目錄中
+
+二、開發庫函數使用方法
+1. 調用usb_relay_init()函數初始化
+2. 調用usb_relay_device_enumerate()查找插入到電腦中的所有USB免驅繼電器模組
+3. 調用usb_relay_device_open()打開你需要操作的設備; 調用usb_relay_device_open_with_serial_number() 打開指定序號的設備
+4. 其他操作：
+調用usb_relay_device_open_one_relay_channel()可以打開某路繼電器
+調用usb_relay_device_open_all_relay_channel()可以打開所有繼電器
+調用usb_relay_device_close_one_relay_channel()可以關閉某路繼電器
+調用usb_relay_device_close_all_relay_channel()可以關閉所有繼電器
+5. 調用usb_relay_device_free_enumerate 釋放記憶體
+6. 調用usb_relay_exit 釋放記憶體
+
